@@ -9,7 +9,7 @@ Este projeto tem como objetivo explorar a comunicação serial UART e I2C utiliz
 - Feedback visual e textual no display e via Serial Monitor.
 
 ## 🎥 Demonstração
-[https://youtu.be/q_wpexEg35I]
+[Clique para assistir](https://youtu.be/q_wpexEg35I)
 
 ## 🛠 Requisitos
 - Microcontrolador **Raspberry pi pico w**

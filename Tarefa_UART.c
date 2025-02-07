@@ -28,6 +28,7 @@ const uint I2C_SDA = 14;
 const uint I2C_SCL = 15;
 struct render_area *frame_area_ptr;
 
+//função de inicialização dos componentes usados
 struct render_area start(){
     //inicialização dos gpio's
     gpio_init(ledGreen);
@@ -167,6 +168,7 @@ Matriz_leds_config cls = {
             };
 Matriz_leds_config* numeros[] = {&zero, &um, &dois, &tres, &quatro, &cinco, &seis, &sete, &oito, &nove};
 
+//predefinição de textos a serem exibidos no display
 char *azulOn[8] = {
         //"             "
         "               ",
@@ -229,23 +231,26 @@ void gpio_irq_handler(uint gpio, uint32_t events){
     //tratamento debouncing
     if(gpio == btnA && currentTime - lastTimeA > 200000){
         lastTimeA = currentTime;
-        ledGreenStatus = !ledGreenStatus;
-        printf("%s\n", ledGreenStatus?"Led verde ligado":"Led verde desligado");
-        ledGreenStatus?displayOled(verdeOn,count_of(verdeOn), frame_area_ptr):displayOled(verdeOff,count_of(verdeOff), frame_area_ptr);
+        ledGreenStatus = !ledGreenStatus; //muda o estado do led verde
+        printf("%s\n", ledGreenStatus?"Led verde ligado":"Led verde desligado"); //mostra a mensagem no serial monitor
+        ledGreenStatus?displayOled(verdeOn,count_of(verdeOn), frame_area_ptr):displayOled(verdeOff,count_of(verdeOff), frame_area_ptr); //mostra a mensagem no display oled
         gpio_put(ledGreen, ledGreenStatus);
     //tratamento debouncing
     }else if(gpio == btnB && currentTime - lastTimeB > 200000){
         lastTimeB = currentTime;
-        ledBlueStatus = !ledBlueStatus;
-        ledBlueStatus?displayOled(azulOn,count_of(azulOn), frame_area_ptr):displayOled(azulOff,count_of(azulOff), frame_area_ptr);
+        ledBlueStatus = !ledBlueStatus; //muda o estado do led azul
+        printf("%s\n", ledBlueStatus?"Led azul ligado":"Led azul desligado"); //mostra a mensagem no serial monitor
+        ledBlueStatus?displayOled(azulOn,count_of(azulOn), frame_area_ptr):displayOled(azulOff,count_of(azulOff), frame_area_ptr); //mostra a mensagem no display oled
         gpio_put(ledBlue, ledBlueStatus);
+    //tratamento debouncing
     }else if(gpio == btnJoy && currentTime - lastTimeJ > 200000){
         lastTimeJ = currentTime;
-        imprimir_desenho(cls, pio, sm);
-        displayOled(clr,count_of(clr), frame_area_ptr);
+        imprimir_desenho(cls, pio, sm); //limpa a matriz de leds
+        displayOled(clr,count_of(clr), frame_area_ptr); //limpa o display oled
     }
 }
 
+//função responsável por renderizar os textos no display
 void displayOled(char *text[8],size_t line_count, struct render_area *frame_area){
     // zera o display inteiro
         uint8_t ssd[ssd1306_buffer_length];
@@ -271,10 +276,9 @@ int main()
 {
     stdio_init_all();
 
-    //inicialização da matriz de leds
+    //inicialização dos componentes
     pio = pio0;
     sm = configurar_matriz(pio);
-    
     struct render_area frame_area = start();
     frame_area_ptr = &frame_area;
     
@@ -283,12 +287,14 @@ int main()
     gpio_set_irq_enabled_with_callback(btnB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(btnJoy, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
-    char c = '-';
+    char c;
     while (true) {
-        scanf(" %c", &c);
+        scanf(" %c", &c); //leitura de caractere pelo monitor serial
+        //verificação se o caractere é um algarismo entre 0 e 9
         if(c >= 48 && c <= 57){
             int i = c - 48;
             imprimir_desenho(*numeros[i], pio, sm); //atualiza o número na matriz de leds
+        //verificação se o caractere é uma letra entre A e Z ou a e z
         }else if((c >= 65 && c <= 90) || (c >= 97 && c <= 122)){
             char *text[8];
             for (int i = 0; i < 8; i++) {
@@ -308,7 +314,7 @@ int main()
             snprintf(text[6], 32, "               ");
             snprintf(text[7], 32, "               ");
 
-            displayOled(text,count_of(text), frame_area_ptr);
+            displayOled(text,count_of(text), frame_area_ptr); //mostra no display qual foi o caractere lido
         }
         sleep_ms(1);
     }
